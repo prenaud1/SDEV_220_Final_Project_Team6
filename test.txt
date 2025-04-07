@@ -1,0 +1,3 @@
+Hello,
+This is a small text file I made to let us test the collaboration features in GitHub.
+-Paul
