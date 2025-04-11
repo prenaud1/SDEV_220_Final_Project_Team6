@@ -7,6 +7,8 @@ April 11, 2025 - Paul Renaud
 Basic functionality works in text mode.
 We will need to add date/time checkers, restaurant checks (hours and seat
 availability), file saving, and GUI.
+Probably a bug will appear after deleting a customer with an active reservation.
+Either disallow that, or also delete the reservation(s) at the same time.
 
 April 10, 2025 - Paul Renaud
 Started writing.
@@ -210,9 +212,9 @@ def edit_res(res):
             i = 0
             for c in all_cus:
                 i += 1
-                print(i, "-", c.name)
+                print(i, "-", c)
             while True:
-                prompt = "Name (N to add a new customer) [" + res.cust.name + "]:"
+                prompt = "Select a customer (N to add a new customer) [" + res.cust.name + "]:"
                 choice = input(prompt).upper()
                 if choice != "":
                     if choice == "N":
