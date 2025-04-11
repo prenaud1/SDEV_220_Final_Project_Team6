@@ -153,7 +153,7 @@ def new_res():
     """
     Returns the new reservation or empty string if none made.
     """
-    r = edit_res(Reservation("datetime", Customer("name"), 1)) # creates a blank reservation. Danger of creating reservation with "name" and no matching customer.
+    r = edit_res(Reservation("datetime", Customer("name"), 1)) # creates a blank reservation to edit.
     if r:
         all_res.append(r)
         return r
