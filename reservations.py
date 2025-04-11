@@ -280,9 +280,9 @@ def del_cus():
             print(i, "-", c)
         if len(all_cus) == 0:
             print("No customers in list.")
-        print("\nEnter number to delete, or go back to R)eservation list.")
-        choice = input("Make a selection [#, R]: ").upper()
-        if choice == "R":
+        print("\nEnter number to delete, or go back to C)ustomer list.")
+        choice = input("Make a selection [#, C]: ").upper()
+        if choice == "C":
             return
         else:
             selection = 0
@@ -292,6 +292,18 @@ def del_cus():
                 pass
             if selection > 0 and selection <= len(all_cus):
                 all_cus[selection - 1].full_print()
+
+                # there is definately a more Pythonic way to check for active reservations.
+                # probably by making a list of all customers in all reservations somehow.
+                num = 0
+                for r in all_res:
+                    if all_cus[selection-1]==r.cust:
+                        num += 1
+                if num > 0:
+                    print("This customer has active reservations!")
+                else:
+                    print("This customer has no active reservations.")
+
                 choice = input("Type DEL to delete this customer: ")
                 if choice == "DEL":
                     del all_cus[selection - 1]
