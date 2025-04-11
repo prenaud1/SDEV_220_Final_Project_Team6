@@ -213,12 +213,12 @@ def edit_res(res):
                 print(i, "-", c.name)
             while True:
                 prompt = "Name (N to add a new customer) [" + res.cust.name + "]:"
-                choice = input(prompt)
+                choice = input(prompt).upper()
                 if choice != "":
                     if choice == "N":
-                        new_cus()
-                        all_cus.append(c)
-                        res.cust = all_cus[len(all_cus)]
+                        c = new_cus()
+                        if c:
+                            res.cust = all_cus[len(all_cus) - 1]
                     else:
                         selection = 0
                         try:
