@@ -78,7 +78,7 @@ root.resizable(True, True)
 root.configure(bg='black')  # Change background color to black
 
 # Add widgets to the window
-title = tk.Label(root, text="Welcome to A Seat at the Table Reservation!", font=('Times Roman', 20), bg='black',
+title = tk.Label(root, text="Welcome to A Nice Restaurant!", font=('Times Roman', 20), bg='black',
                  fg='orange', pady=10)
 
 # User inputs name information
