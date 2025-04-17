@@ -72,12 +72,16 @@ def on_exit():
         root.destroy()
 
 
-# Set background colors here
+# Set colors and fonts here
+fg_color = "black"
 window_bg_color = "#0077aa"
 button_bg_color = "white"
 select_bg_color = "white"
+label_font = ("", 14, "normal")  # tuple sent to Label font (family, size, bold/normal)
+input_font = ("", 14, "normal")  # tuple sent to input font (family, size, bold/normal)
+button_font = ("", 18, "normal")  # tuple sent to button font (family, size, bold/normal)
 paddingx = 20
-paddingy = 5
+paddingy = 3
 
 # Create the window title, size and color
 root = tk.Tk()
@@ -86,69 +90,75 @@ root.title("Reservation")
 root.resizable(True, True)
 root.configure(bg=window_bg_color)
 
-# Add widgets to the window
-title = tk.Label(root, text="Welcome to A Nice Restaurant!",
-                 font=('Times Roman', 20),
-                 bg=window_bg_color, fg = 'black')
-
-
 r = 0  # to make it easier to rearrange items by moving the code
 
-# Add title
+# Add widgets to the window
+
+# Title
+title = tk.Label(root, text="Welcome to A Nice Restaurant!",
+                 font=('Times Roman', 24, "bold"),
+                 bg=window_bg_color, fg=fg_color)
 title.grid(row=r, column=0, columnspan=2, sticky="ew", padx=paddingx, pady=paddingy)
 
 # User inputs name information
 r += 1
 name_label = tk.Label(root, text='Name')
-name_label.configure(bg=window_bg_color)
+name_label.configure(bg=window_bg_color, fg=fg_color, font=label_font)
 name_label.grid(row=r, column=0, sticky='w', padx=paddingx, pady=paddingy)
 name_inp = tk.Entry(root)
-name_inp.grid(row=r, column=1, sticky='e', padx=paddingx, pady=paddingy)
+name_inp.configure(font=input_font)
+name_inp.grid(row=r, column=1, sticky='we', padx=paddingx, pady=paddingy)
 
 # User inputs phone number information
 r += 1
 number_label = tk.Label(root, text='Phone Number')
-number_label.configure(bg=window_bg_color)
+number_label.configure(bg=window_bg_color, fg=fg_color, font=label_font)
 number_label.grid(row=r, column=0, sticky='w', padx=paddingx, pady=paddingy)
 number_inp = tk.Entry(root)
-number_inp.grid(row=r, column=1, sticky='e', padx=paddingx, pady=paddingy)
+number_inp.configure(font=input_font)
+number_inp.grid(row=r, column=1, sticky='we', padx=paddingx, pady=paddingy)
 
 # User inputs email address information
 r += 1
 address_label = tk.Label(root, text='Email Address')
-address_label.configure(bg=window_bg_color)
+address_label.configure(bg=window_bg_color, fg=fg_color, font=label_font)
 address_label.grid(row=r, column=0, sticky='w', padx=paddingx, pady=paddingy)
 address_inp = tk.Entry(root)
-address_inp.grid(row=r, column=1, sticky='e', padx=paddingx, pady=paddingy)
+address_inp.configure(font=input_font)
+address_inp.grid(row=r, column=1, sticky='we', padx=paddingx, pady=paddingy)
 
 # Party Size Selection
 r += 1
 size_label = tk.Label(root, text='Select Party Size')
-size_label.configure(bg=window_bg_color)
+size_label.configure(bg=window_bg_color, fg=fg_color, font=label_font)
 size_label.grid(row=r, column=0, sticky='w', padx=paddingx, pady=paddingy)
 size_var = tk.StringVar(root, '1')
 size_opts = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
 size_inp = tk.OptionMenu(root, size_var, *size_opts)
-size_inp.configure(bg=select_bg_color)
-size_inp.grid(row=r, column=1,sticky='e', padx=paddingx, pady=paddingy)
+size_inp.configure(bg=select_bg_color, font=input_font)
+menu = root.nametowidget(size_inp.menuname)
+menu.configure(font=input_font) # set the drop down menu font
+size_inp.grid(row=r, column=1,sticky='we', padx=paddingx, pady=paddingy)
 
 # Seating Selection
 r += 1
 seat_label = tk.Label(root, text='Select Seating Area')
-seat_label.configure(bg=window_bg_color)
+seat_label.configure(bg=window_bg_color, fg=fg_color, font=label_font)
 seat_label.grid(row=r, column=0, sticky='w', padx=paddingx, pady=paddingy)
 seat_var = tk.StringVar(root, 'Main area')
 seat_opts = ['Main area', 'Private Room', 'Patio', 'Roof Top View']
 seat_inp = tk.OptionMenu(root, seat_var, *seat_opts)
-seat_inp.configure(bg=select_bg_color)
-seat_inp.grid(row=r, column=1, sticky='e', padx=paddingx, pady=paddingy)
+seat_inp.configure(bg=select_bg_color, font=input_font)
+menu = root.nametowidget(seat_inp.menuname)
+menu.configure(font=input_font) # set the drop down menu font
+seat_inp.grid(row=r, column=1, sticky='we', padx=paddingx, pady=paddingy)
 
 # Date Selection
 r += 1
 from tkinter import ttk
 from tkcalendar import Calendar
 date_label = tk.Label(root, text='Select a date for reservation:')
-date_label.configure(bg=window_bg_color)
+date_label.configure(bg=window_bg_color, fg=fg_color, font=label_font)
 date_label.grid(row=r, column=0, sticky='nw', padx=paddingx, pady=paddingy)
 date_inp = Calendar(root, selectmode='day', date_pattern='yyyy-mm-dd')
 date_inp.grid(row=r, column=1, sticky='e', padx=paddingx, pady=paddingy)
@@ -156,39 +166,58 @@ date_inp.grid(row=r, column=1, sticky='e', padx=paddingx, pady=paddingy)
 # Time Selection
 r += 1
 time_label = tk.Label(root, text='Select desired arrival time:')
-time_label.configure(bg=window_bg_color)
+time_label.configure(bg=window_bg_color, fg=fg_color, font=label_font)
 time_label.grid(row=r, column=0, sticky='w', padx=paddingx, pady=paddingy)
 time_var = tk.StringVar(root, '3:00 PM')
 time_opts = ['3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM', '6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM']
 time_inp = tk.OptionMenu(root, time_var, *time_opts)
-time_inp.configure(bg=select_bg_color)
-time_inp.grid(row=r, column=1, sticky='e', padx=paddingx, pady=paddingy)
+time_inp.configure(bg=select_bg_color, font=input_font)
+menu = root.nametowidget(time_inp.menuname)
+menu.configure(font=input_font) # set the drop down menu font
+time_inp.grid(row=r, column=1, sticky='we', padx=paddingx, pady=paddingy)
 
 # Special Occasion Selection
 r += 1
 occasion_label = tk.Label(root, text='Select Special Occasion')
-occasion_label.configure(bg=window_bg_color)
+occasion_label.configure(bg=window_bg_color, fg=fg_color, font=label_font)
 occasion_label.grid(row=r, column=0, sticky='w', padx=paddingx, pady=paddingy)
 occasion_var = tk.StringVar(root, 'None')
 occasion_opts = ['None', 'Birthday', 'Mothers Day', 'Fathers Day', 'Anniversary', 'Wedding', 'Graduation']
 occasion_inp = tk.OptionMenu(root, occasion_var, *occasion_opts)
-occasion_inp.configure(bg=select_bg_color)
-occasion_inp.grid(row=r, column=1, sticky='e', padx=paddingx, pady=paddingy)
+occasion_inp.configure(bg=select_bg_color, font=input_font)
+menu = root.nametowidget(occasion_inp.menuname)
+menu.configure(font=input_font) # set the drop down menu font
+occasion_inp.grid(row=r, column=1, sticky='we', padx=paddingx, pady=paddingy)
 
-# Checkout button
-submit_btn = tk.Button(root, text='Submit', command=on_submit)
-submit_btn.configure(bg=button_bg_color)
-submit_btn.grid(row = 99, column=0, columnspan=1, sticky='NSEW', padx=paddingx, pady=paddingy)
+# Extra notes
+r += 1
+occasion_label = tk.Label(root, text='Notes')
+occasion_label.configure(bg=window_bg_color, fg=fg_color, font=label_font)
+occasion_label.grid(row=r, column=0, sticky='nw', padx=paddingx, pady=paddingy)
+notes_inp = tk.Text(root, height=3, width=30)
+notes_inp.configure(bg=select_bg_color, font=input_font)
+notes_inp.grid(row=r, column=1, sticky='we', padx=paddingx, pady=paddingy)
+
+# add blank line before action buttons
+r += 1
+# Separator object
+separator = ttk.Separator(root, orient='horizontal')
+separator.grid(row=r, column=0, columnspan=2, sticky="ew", padx=paddingx, pady=paddingy*3)
 
 # Clear button
 clear_btn = tk.Button(root, text='Clear Reservation', command=on_clear)
-clear_btn.configure(bg=button_bg_color)
-clear_btn.grid(row =99, column=1, columnspan=1, sticky='NSEW', padx=paddingx, pady=paddingy)
+clear_btn.configure(bg=button_bg_color, font=button_font)
+clear_btn.grid(row=99, column=0, columnspan=1, sticky='NSEW', padx=paddingx, pady=paddingy)
+
+# Checkout button
+submit_btn = tk.Button(root, text='Submit', command=on_submit)
+submit_btn.configure(bg=button_bg_color, font=button_font)
+submit_btn.grid(row=99, column=1, columnspan=1, sticky='NSEW', padx=paddingx, pady=paddingy)
 
 # Exit button
 exit_btn = tk.Button(root, text='Exit', command=on_exit)
-exit_btn.configure(bg=button_bg_color)
-exit_btn.grid(row =100, column=0, columnspan=2, sticky='NSEW', padx=paddingx, pady=paddingy)
+exit_btn.configure(bg=button_bg_color, font=button_font)
+exit_btn.grid(row=100, column=0, columnspan=2, sticky='NSEW', padx=paddingx, pady=paddingy)
 
 # Output message
 output_line = tk.Label(root, text='', anchor='w', justify='left', pady=10)
