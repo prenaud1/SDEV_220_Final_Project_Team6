@@ -1,3 +1,111 @@
+"""
+reservation.py
+by Paul Renaud, LaToya Finnell, Sidart Rav, Kodi Righthouse
+Allows a restaurant employee to add, edit, or remove existing reservations.
+Keeps list of reservations, and list of customers.
+
+"""
+
+class Customer:
+    """
+    Each Customer has 3 fields: name, phone, and email.
+    name is required. phone and email are optional but may be specified in order or by name.
+    """
+    def __init__(self, name, phone=None, email=None):
+        self.name = name
+        self.phone = phone
+        if self.phone is None:
+            self.phone = ""
+        self.email = email
+        if self.email is None:
+            self.email = ""
+
+    def __str__(self):
+        return f"Customer: {self.name} | Phone: {self.phone} | Email {self.email}"
+
+class Restaurant:
+    """Contains info about the restaurant's open hours, and names of dining areas with number of seats.
+    We might find a way to combine these (for example, outdoor seating only available during certain times)
+    Not sure we need a class, but it may be useful for more than one location."""
+    location = "Downtown location"
+    hours = "M-F 11am - 9pm, Sat & Sun 11am - 10pm"
+    seating = [{"Main area": 60},
+               {"Private room": 12}]
+
+    def __str__(self):
+        # str only returns location name for now
+        return f"{self.location}"
+
+class Reservation:
+    """
+    Each Reservation has location, datetime, cust, party_size, seating, occasion, and notes.
+    location is a Restaurant class.
+    datetime is just a string for now.
+    cust is a Customer class.
+    seating, occasion, and notes are optional.
+    """
+    def __init__(self, location, datetime, cust, party_size, seating=None, occasion=None, notes=None):
+        # init to empty string if not specified
+        self.location = location
+        self.datetime = datetime
+        self.cust = cust
+        self.party_size = party_size
+        self.seating = seating
+        if self.seating is None:
+            self.seating = ""
+        self.occasion = occasion
+        if self.occasion is None:
+            self.occation = ""
+        self.notes = notes
+        if self.notes is None:
+            self.notes = ""
+
+    def __str__(self):
+        output_string = f"Location: {self.location}"
+        output_string += f"Date/Time: {self.datetime}"
+        output_string += f" | Name: {self.cust.name}"
+        output_string += f" | Party Size:  {self.party_size}"
+        output_string += f" | Seating: {self.seating}"
+        output_string += f" | Occasion: {self.occasion}"
+        output_string += f" | Notes: {self.notes}"
+        return output_string
+
+
+# init empty lists
+# lists can contain any data, but these are for each of the classes
+customers = []
+restaurants = []
+reservations = []
+
+
+# code testing for debug
+# will later load from file
+
+# add sample customers
+c = Customer("Smith", email="bsmith@domain.com")  # added in two lines
+customers.append(c)
+c = Customer("Gupta", phone="578-457-4082")
+customers.append(c)
+customers.append(Customer("Monet"))  # added directly in one line
+
+# add sample restaurant
+restaurants.append(Restaurant())
+loc = restaurants[0]  # to save on typing
+
+# add sample reservations
+reservations.append(Reservation(loc, "12 noon", customers[0], 12, "Private Room", "30th birthday"))
+reservations.append(Reservation(loc, "6pm", customers[1], 3, notes="Prefers near a window"))
+
+def res_list():
+    # main view, showing all reservations, and buttons for New Reservation, Change, Delete, or Exit program.
+    # Possibly the delete option will be under the Change option.
+    pass
+
+def cus_list():
+    # customer list, showing all customers, and buttons for New Customer, Change, Delete, or Return to res_list.
+    # Delete option may be under the Change option.
+    pass
+
 import tkinter as tk
 from tkinter import messagebox
 
@@ -49,10 +157,10 @@ def on_submit():
 
     # Add a button to close the output window
     close_button = tk.Button(output_window, text='Close', command=output_window.destroy)
-    close_button.pack()
+    close_button.pack(pady=(0, 10))    # tuple for (top, bottom) padding
 
     # Set the size of the output window
-    output_window.geometry('550x115')
+    # output_window.geometry('550x115')
 
 def on_clear():
     # Runs when user clicks clear, form will delete input
@@ -85,7 +193,7 @@ paddingy = 3
 
 # Create the window title, size and color
 root = tk.Tk()
-root.title("Reservation")
+root.title("New Reservation")
 #root.geometry('600x515')
 root.resizable(True, True)
 root.configure(bg=window_bg_color)
