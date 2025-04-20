@@ -44,11 +44,14 @@ class Reservation:
     """
     Creates a new Reservation. datetime is just a string for now. cust is a Customer class. Notes are optional.
     """
-    def __init__(self, datetime, cust, party_size, notes=None):
+    def __init__(self, datetime, cust, party_size, seating=None, occasion=None, notes=None):
         self.datetime = datetime
         self.cust = cust
         self.party_size = party_size
+        self.seating = seating
+        self.occasion = occasion
         self.notes = notes
+
 
     def __str__(self):
         output_string = "Date/Time: "
