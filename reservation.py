@@ -183,7 +183,7 @@ def on_exit():
 
 # Set colors and fonts here
 fg_color = "black"
-window_bg_color = "#0077aa"
+window_bg_color = "gray"  # gray bg for testing, normal color #0077aa
 button_bg_color = "white"
 select_bg_color = "white"
 label_font = ("", 14, "normal")  # tuple sent to Label font (family, size, bold/normal)
