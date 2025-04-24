@@ -60,6 +60,7 @@ class Reservation:
         if self.notes is None:
             self.notes = ""
 
+    
     def __str__(self):
         output_string = f"Location: {self.location}"
         output_string += f"Date/Time: {self.datetime}"
