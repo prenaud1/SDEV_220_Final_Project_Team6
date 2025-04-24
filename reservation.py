@@ -182,7 +182,7 @@ def on_exit():
 
 
 # Set colors and fonts here
-fg_color = "black"
+fg_color = "blue"
 window_bg_color = "#0077aa"
 button_bg_color = "white"
 select_bg_color = "white"
