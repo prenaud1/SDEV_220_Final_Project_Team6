@@ -169,7 +169,7 @@ def edit_res(res=None):
         messagebox.showinfo("Vars", f"{name=}, {phone=}, {address=}, {party_size=}, {seat=}, {date=}, {time=}, {occasion=}, {notes=}")
                 
         # Create the order summary message
-        message = f'Thank you! A reservation has beel placed for: {name}. \n \n\
+        message = f'Thank you! A reservation has been placed for: {name}. \n \n\
                 The reservation will be for a party of {party_size} seated at the {seat} starting at {time}. \n'
         if phone:
                 message += f"We will text the phone number {phone} when the table is ready. \n"
@@ -200,8 +200,7 @@ def edit_res(res=None):
         party_size_var.set('1')
         seat_var.set('Main area')
         occasion_var.set('None')
-        for time_var in time_var:
-            time_var.set(False)
+        time_var.set("3:00 PM")
         output_line.configure(text='')
 
 
