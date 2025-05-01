@@ -170,11 +170,11 @@ def edit_res(res=None):
                 
         # Create the order summary message
         message = f'Thank you! A reservation has beel placed for: {name}. \n \n\
-                You reservation will be for a party of {party_size} seated at the {seat} starting at {time}. \n'
+                The reservation will be for a party of {party_size} seated at the {seat} starting at {time}. \n'
         if phone:
-                message += f"We will text the phone number {phone} when your table is ready. \n"
+                message += f"We will text the phone number {phone} when the table is ready. \n"
         if address:
-                message += f"Confirmation will be sent to your email {address}. \n"
+                message += f"Confirmation will be sent to the email {address}. \n"
         
         #Create a new window to display the output message
         output_window = tk.Toplevel(root)
@@ -197,7 +197,7 @@ def edit_res(res=None):
         name_inp.delete(0, tk.END)
         address_inp.delete(0, tk.END)
         phone_inp.delete (0, tk.END)
-        size_var.set('0')
+        party_size_var.set('1')
         seat_var.set('Main area')
         occasion_var.set('None')
         for time_var in time_var:
