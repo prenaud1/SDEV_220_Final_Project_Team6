@@ -206,6 +206,7 @@ def edit_res(res=None):
 
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 # Set colors and fonts here
 fg_color = "black"
 window_bg_color = "gray"  # gray bg for testing, normal color #0077aa
@@ -357,11 +358,16 @@ exit_btn.grid(row=100, column=0, columnspan=2, sticky='NSEW', padx=paddingx, pad
 output_line = tk.Label(root, text='', anchor='w', justify='left', pady=10)
 error_line = tk.Label(root, text='', anchor='w', justify='left', pady=10)
 =======
+=======
+>>>>>>> Stashed changes
     def on_exit():
         # Runs when user clicks Exit button and confirms
         if messagebox.askokcancel('Exit', 'Are you sure you want to exit?'):
             root.destroy()
             return False
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
 
