@@ -308,6 +308,18 @@ def edit_res(index=None, update_callback=None):
         elif not isinstance(date, str):
             date = str(date)  # Handle unexpected cases
 
+        # check for exising customer, and create new if not found
+        def find_customer_index(customers, name, phone, address):
+            # looks for matches of name, phone, email and returns index of matching customer
+            for index, cust in enumerate(customers):
+                if cust.name==name and cust.phone==phone and cust.email==address:
+                    return index
+            return -1
+        index = find_customer_index(customers, name, phone, address)
+        if index == -1:  # no customer, create new one
+            customers.append(Customer(name, phone, address))
+
+
         if res is None:   # create new
             reservations.append(Reservation(loc, date, time, Customer(name, phone, address), tables, party_size, seat, occasion, notes))
         else:   # update existing
