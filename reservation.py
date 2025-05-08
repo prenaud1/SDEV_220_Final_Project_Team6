@@ -374,7 +374,7 @@ def edit_res(index=None, update_callback=None):
 
 
     # begin with a blank reservation. If one sent as arg, prefill fields.
-    this_res = Reservation(loc, datetime.today(), "11:00", Customer("(new customer)"), 1, 1)
+    this_res = Reservation(loc, datetime.today(), "11:00", Customer("(new customer)"), 1, 1, seating="Main area")
     if res:
         this_res = res    
 
@@ -399,6 +399,7 @@ def edit_res(index=None, update_callback=None):
 
     def new_input_field(label_text, row, default_value=""):
         # style and place a label and return the entry field
+        # if using elsewhere, will need to change edit_window to name of window you are adding to.
         label = tk.Label(edit_window, text=label_text, bg=window_bg_color, fg=fg_color, font=label_font)
         label.grid(row=row, column=0, sticky="w", padx=paddingx, pady=paddingy)
 
@@ -409,7 +410,8 @@ def edit_res(index=None, update_callback=None):
         return entry
     
     def new_option_menu(label_text, row, options, default_value):
-        # style and place a label and option box
+        # Allows to easily add a label and option box.
+        # Returns variable for getting later.
         parent = edit_window
         label = tk.Label(parent, text=label_text, bg=window_bg_color, fg=fg_color, font=label_font)
         label.grid(row=row, column=0, sticky="w", padx=paddingx, pady=paddingy)
@@ -419,13 +421,15 @@ def edit_res(index=None, update_callback=None):
 
         option_menu = tk.OptionMenu(parent, var, *options)
         option_menu.configure(bg=select_bg_color, font=input_font, takefocus=True)
+        # allow keyboard selection with Enter. Appear at the widget x, y position.
         option_menu.bind("<Return>", lambda event: parent.nametowidget(option_menu.menuname).tk_popup(
         option_menu.winfo_rootx(), option_menu.winfo_rooty() + option_menu.winfo_height()))
 
-        # Configure dropdown menu items
+        # Configure dropdown menu items styling
         menu = parent.nametowidget(option_menu.menuname)
         menu.configure(font=input_font)
 
+        #add to window
         option_menu.grid(row=row, column=1, sticky="we", padx=paddingx, pady=paddingy)
 
         return var  # Return the variable so you can get its value later
@@ -436,12 +440,12 @@ def edit_res(index=None, update_callback=None):
         if name_inp.get() == "(new customer)":
             name_inp.select_range(0, tk.END)    
     r += 1
-    name_inp = new_input_field("Name", r, this_res.cust.name)
+    name_inp = new_input_field("Name *", r, this_res.cust.name)
     name_inp.bind("<FocusIn>", on_focus)  # to check if new customer
 
     # User inputs phone number information
     r += 1
-    phone_inp = new_input_field("Phone Number", r, this_res.cust.phone)
+    phone_inp = new_input_field("Phone Number *", r, this_res.cust.phone)
 
     # User inputs email address information
     r += 1
@@ -449,7 +453,7 @@ def edit_res(index=None, update_callback=None):
 
     # Number of Tables
     r += 1
-    tables_inp = new_input_field("Number of Tables", r, this_res.tables)
+    tables_inp = new_input_field("Number of Tables *", r, this_res.tables)
 
     # Party Size Selection
     r += 1
@@ -475,7 +479,7 @@ def edit_res(index=None, update_callback=None):
     # Time Selection
     r += 1
     time_opts = []
-    for i in range(11, 22):
+    for i in range(11, 22):    # Currently hard-coded. Maybe take from loc.open_time and loc.close_time
         time_opts.append(str(i) + ":00")
         time_opts.append(str(i) + ":30")
     time_var = new_option_menu("Select desired arrival time:", r, time_opts, this_res.time)
@@ -539,6 +543,8 @@ def main_list():
     def del_res():
         selected = listbox.curselection()
         if selected:
+            # confirmation dialog goes here
+            ...   
             del reservations[selected[0]]
             update_listbox()
 
@@ -551,6 +557,7 @@ def main_list():
             return False
     
     def edit_selected_res():
+        # Gets current selection and sends index to edit_res function.
         sel = listbox.curselection()
         if sel:   # check if not blank
             edit_res(sel[0], update_listbox)  # sel is a tuple, but I only want the first entry
@@ -565,13 +572,15 @@ def main_list():
         pass
 
     def update_listbox():
-        listbox.delete(0, tk.END)
+        # Call this to refresh listbox after any changes.
+        listbox.delete(0, tk.END)   # start with empty listbox
         if view=="reservations":
             title_label.config(text="Reservations")
             listbox.configure(bg="#bbbbff")
             for i in range(len(reservations)):
-                s = "s" if reservations[i].tables != 1 else ""
+                s = "s" if reservations[i].tables != 1 else ""  # Do not include "s" for 1 table.
                 listbox.insert(tk.END, f"   {reservations[i].date} - {reservations[i].time} - {reservations[i].cust.name} - {reservations[i].tables} table{s} in {reservations[i].seating}")
+            # Re-define buttons
             switch_button.config(text="Switch to Customers", bg="#bbffbb")
             new_button.config(text="New Reservation", command=add_res)
             modify_button.config(text="Modify Reservation", command=edit_selected_res)
@@ -581,6 +590,7 @@ def main_list():
             listbox.configure(bg="#bbffbb")
             for i in range(len(customers)):
                 listbox.insert(tk.END, f"   {customers[i].name} - {customers[i].phone} - {customers[i].email}")
+            # Re-define buttons
             switch_button.config(text="Switch to Reservations", bg="#bbbbff")
             new_button.config(text="New Customer", command=add_cust)
             modify_button.config(text="Modify Customer", command=edit_selected_cust)
@@ -616,6 +626,7 @@ def main_list():
     btn_frame.pack(fill=tk.X, padx=5, pady=5)
 
     def add_button(text, command):
+        # Add a button easily. If porting somewhere else, change btn_frame.
         make_button = tk.Button(btn_frame, text=text, command=command)
         make_button.configure(bg=button_bg_color, font=button_font)
         make_button.pack(side=tk.LEFT, expand=True, padx=10)
