@@ -21,6 +21,7 @@ paddingy = 3   # top and bottom padding for each element in edit window
 
 
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox
 from datetime import datetime
 import json
@@ -530,6 +531,141 @@ def edit_res(index=None, update_callback=None):
 
     edit_window.mainloop()
 
+def edit_cust(index=None, update_callback=None):
+    # Shows fields to edit or add a customer.
+    # If sent an exsiting customer index, will be prefilled with that info.
+    # Otherwise, will initilize to a blank customer.
+    
+    if index is None or len(customers) == 0:
+        cus = None
+    else:
+        if index < 0:
+            index = 0
+        if index >= len(customers):
+            index = len(customers) - 1
+        cus = customers[index]
+    
+    def on_submit():
+
+        # Runs if user tries to provide without providing additional information
+        name = name_inp.get()
+        if not name:
+            messagebox.showerror('Name required', "Please enter a name.")
+            return
+
+        phone = phone_inp.get()
+        #if not phone:
+        #    messagebox.showerror('Phone required', "Please enter your phone number")
+        #    return
+        
+        address = address_inp.get()
+        
+        """
+        # check for exising customer, and create new if not found
+        def find_customer_index(customers, name, phone, address):
+            # looks for matches of name, phone, email and returns index of matching customer
+            for index, cust in enumerate(customers):
+                if cust.name==name and cust.phone==phone and cust.email==address:
+                    return index
+            return -1
+        index = find_customer_index(customers, name, phone, address)
+        if index == -1:  # no customer, create new one
+            customers.append(Customer(name, phone, address))
+        """
+
+        if cus is None:   # create new
+            customers.append(Customer(name, phone, address))
+        else:   # update existing
+            customers[index] = Customer(name, phone, address)
+        if update_callback:  # run list update
+            update_callback()
+
+        cust_window.destroy()
+
+        return
+
+
+    def on_close():
+        # Runs when user clicks Exit button and confirms
+        #if messagebox.askokcancel('Exit', 'Are you sure you want to exit?'):
+        cust_window.destroy()
+        return False
+
+
+    # begin with a blank customer
+    this_cus = Customer("(new customer)")
+    if cus:
+        this_cus = cus
+
+
+    # Create the window title, size and color
+    cust_window = tk.Toplevel()
+    cust_window.title("Customer Info")
+    cust_window.resizable(True, True)
+    cust_window.configure(bg=window_bg_color)
+
+    r = 0  # to make it easier to rearrange items by moving the code
+
+    # Add widgets to the window
+
+    # Title
+    title = tk.Label(cust_window, text="Enter Customer Info",
+                    font=('Times Roman', 24, "bold"),
+                    bg=window_bg_color, fg=fg_color)
+    title.grid(row=r, column=0, columnspan=2, sticky="ew", padx=paddingx, pady=paddingy)
+
+
+    def new_input_field(label_text, row, default_value=""):
+        # style and place a label and return the entry field
+        # if using elsewhere, will need to change cust_window to name of window you are adding to.
+        label = tk.Label(cust_window, text=label_text, bg=window_bg_color, fg=fg_color, font=label_font)
+        label.grid(row=row, column=0, sticky="w", padx=paddingx, pady=paddingy)
+
+        entry = tk.Entry(cust_window, font=input_font)
+        entry.grid(row=row, column=1, sticky="we", padx=paddingx, pady=paddingy)
+        entry.insert(0, default_value)  # Prefill
+
+        return entry
+    
+    # User inputs name information
+    def on_focus(event):
+        # if name is (new customer) auto-select it to overwrite
+        if name_inp.get() == "(new customer)":
+            name_inp.select_range(0, tk.END)    
+    r += 1
+    name_inp = new_input_field("Name *", r, this_cus.name)
+    name_inp.bind("<FocusIn>", on_focus)  # to check if new customer
+
+    # User inputs phone number information
+    r += 1
+    phone_inp = new_input_field("Phone Number *", r, this_cus.phone)
+
+    # User inputs email address information
+    r += 1
+    address_inp = new_input_field("Email Address", r, this_cus.email)
+
+    # add separator before action buttons
+    r += 1
+    # Separator object
+    separator = ttk.Separator(cust_window, orient='horizontal')
+    separator.grid(row=r, column=0, columnspan=2, sticky="ew", padx=paddingx, pady=paddingy*3)
+
+    # Clear button
+    clear_btn = tk.Button(cust_window, text='Cancel', command=on_close)
+    clear_btn.configure(bg=button_bg_color, font=button_font)
+    clear_btn.grid(row=99, column=0, columnspan=1, sticky='NSEW', padx=paddingx, pady=paddingy)
+
+    # Checkout button
+    submit_btn = tk.Button(cust_window, text='Save Info', command=on_submit)
+    submit_btn.configure(bg=button_bg_color, font=button_font)
+    submit_btn.grid(row=99, column=1, columnspan=1, sticky='NSEW', padx=paddingx, pady=paddingy)
+
+    # auto-select the first entry
+    cust_window.after(100, lambda: name_inp.focus_set())
+
+    cust_window.mainloop()
+
+
 global view
 view = "reservations"
 
@@ -563,10 +699,13 @@ def main_list():
             edit_res(sel[0], update_listbox)  # sel is a tuple, but I only want the first entry
 
     def add_cust():
-        pass
+        edit_cust(None, update_listbox)  # sent with no args for new customer
 
     def edit_selected_cust():
-        pass
+        # Gets current selection and sends index to edit_res function.
+        sel = listbox.curselection()
+        if sel:   # check if not blank
+            edit_cust(sel[0], update_listbox)  # sel is a tuple, but I only want the first entry
 
     def del_cust():
         pass
