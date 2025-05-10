@@ -680,7 +680,9 @@ def main_list():
         selected = listbox.curselection()
         if selected:
             # confirmation dialog goes here
-            ...   
+            message = str(reservations[selected[0]])
+            message += '/n/nAre you sure you want to delete?'
+            messagebox.askokcancel('Delete Reservation', message) 
             del reservations[selected[0]]
             update_listbox()
 
@@ -694,9 +696,9 @@ def main_list():
     
     def edit_selected_res():
         # Gets current selection and sends index to edit_res function.
-        sel = listbox.curselection()
-        if sel:   # check if not blank
-            edit_res(sel[0], update_listbox)  # sel is a tuple, but I only want the first entry
+        selected = listbox.curselection()
+        if selected:   # check if not blank
+            edit_res(selected[0], update_listbox)  # sel is a tuple, but I only want the first entry
 
     def add_cust():
         edit_cust(None, update_listbox)  # sent with no args for new customer
@@ -708,7 +710,15 @@ def main_list():
             edit_cust(sel[0], update_listbox)  # sel is a tuple, but I only want the first entry
 
     def del_cust():
-        pass
+        #Runs when user clicks Delete Customers button and confirms
+        selected = listbox.curselection()
+        if selected:
+            # confirmation dialog goes here
+            message = str(customers[selected[0]])
+            message += '/n/nAre you sure you want to delete?'
+            messagebox.askokcancel('Delete Customer', message)
+            del customers[selected[0]]
+            update_listbox()
 
     def update_listbox():
         # Call this to refresh listbox after any changes.
