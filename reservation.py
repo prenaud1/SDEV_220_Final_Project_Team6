@@ -441,7 +441,14 @@ def edit_res(index=None, update_callback=None):
         option_menu.grid(row=row, column=1, sticky="we", padx=paddingx, pady=paddingy)
 
         return var  # Return the variable so you can get its value later
-
+    
+    r += 1
+    cust_list = [""]
+    for i in range(len(customers)):
+        c = customers[i]
+        cust_list.append(str(i+1) + " - " + c.name + " - " + c.phone + " - " + c.email)
+    cust_optionmenu = new_option_menu("Prefil from existing customers:", r, cust_list, "")
+    
     # User inputs name information
     def on_focus(event):
         # if name is (new customer) auto-select it to overwrite
@@ -458,6 +465,27 @@ def edit_res(index=None, update_callback=None):
     # User inputs email address information
     r += 1
     address_inp = new_input_field("Email Address", r, this_res.cust.email)
+
+    def prefill():
+        # fills out name, phone, and email from stored customer list
+        # gets index from number - 1
+        pick = cust_optionmenu.get().split(" - ")[0]
+        try:
+            pick = int(pick) - 1
+        except:
+            pick = -1
+        if pick >= 0:
+            c = customers[pick]
+            name_inp.delete(0, tk.END)
+            name_inp.insert(0, c.name)
+            phone_inp.delete(0, tk.END)
+            phone_inp.insert(0, c.phone)
+            address_inp.delete(0, tk.END)
+            address_inp.insert(0, c.email)
+            cust_optionmenu.set("")
+
+    cust_optionmenu.trace_add("write", lambda *args: prefill())
+
 
     # Number of Tables
     r += 1
