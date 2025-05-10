@@ -220,317 +220,6 @@ if USING_FILES:
     load_customers()
     load_reservations()
 
-def edit_res(index=None, update_callback=None):
-    # Shows fields to edit or add a reservation.
-    # If sent an exsiting reservation, will be prefilled with that info.
-    # Otherwise, will initilize to a blank reservation.
-    # Returns a reservation (new or edited), or boolean False if cancelled. (These not yet implemented)
-    if index is None or len(reservations) == 0:
-        res = None
-    else:
-        if index < 0:
-            index = 0
-        if index >= len(reservations):
-            index = len(reservations) - 1
-        res = reservations[index]
-    
-    def validate_time(time_str):
-        # Don't allow reservation if restaurant is closed.
-        try:
-            time_obj = datetime.strptime(time_str, "%H:%M")
-            if loc.open_time <= time_obj.hour < loc.close_time:
-                return True
-            else:
-                messagebox.showerror(f"Invalid Time", "Restaurant is only open from {loc.open_time} to {loc.close_time}.")
-                return False
-        except ValueError:
-            messagebox.showerror("Invalid Time Format", "Please enter time in HH:MM format (24-hour clock).")
-            return False
-
-    def tables_available(date_str, time_str, requested_tables):
-        """Check if requested tables exceed availability for the given 30-minute window."""
-        time_obj = datetime.strptime(time_str, "%H:%M")
-        start_range = time_obj.strftime("%H:%M")
-        end_range = (time_obj.replace(minute=time_obj.minute + 30)).strftime("%H:%M")
-        date_range = datetime.strptime(date_str, "yyyy-mm-dd")
-
-        # Count tables reserved in this 30-minute window
-        tables_used = 0
-        for i in range(len(reservations)):
-            if reservations[i].date == date_range:
-                if start_range <= reservations[i].time < end_range:
-                    tables_used += reservations[i].tables
-
-        if tables_used + requested_tables > loc.total_tables:
-            messagebox.showerror("No Tables Available", "Too many tables reserved in this time window.")
-            return False
-
-        return True
-
-
-    def on_submit():
-
-        # Runs if user tries to provide without providing additional information
-        name = name_inp.get()
-        if not name:
-            messagebox.showerror('Name required', "This reservation must include a name")
-            return
-
-        phone = phone_inp.get()
-        if not phone:
-            messagebox.showerror('Phone required', "Please enter your phone number")
-            return
-        
-        address = address_inp.get()
-        #if not address:
-        #    messagebox.showerror('Error', "Please enter your email address!")
-        #    return
-
-        # convert tables to integer. Silently defaults to 1 if invalid.
-        try:
-            tables = int(tables_inp.get())
-        except:
-            tables = 1
-        if tables <= 0:
-            tables = 1
-        
-        party_size = party_size_var.get()
-        seat = seat_var.get()
-        date = date_inp.get_date()
-        time = time_var.get()
-        occasion = occasion_var.get()
-        notes = notes_inp.get("1.0", tk.END)
-
-        # line for debugging
-        # messagebox.showinfo("Vars", f"{name=}, {phone=}, {address=}, {tables=}, {party_size=}, {seat=}, {date=}, {time=}, {occasion=}, {notes=}")
-        
-        if isinstance(date, datetime):
-            date = date.isoformat()  # Convert datetime to string
-        elif not isinstance(date, str):
-            date = str(date)  # Handle unexpected cases
-
-        # check for exising customer, and create new if not found
-        def find_customer_index(customers, name, phone, address):
-            # looks for matches of name, phone, email and returns index of matching customer
-            for index, cust in enumerate(customers):
-                if cust.name==name and cust.phone==phone and cust.email==address:
-                    return index
-            return -1
-        index = find_customer_index(customers, name, phone, address)
-        if index == -1:  # no customer, create new one
-            customers.append(Customer(name, phone, address))
-
-
-        if res is None:   # create new
-            reservations.append(Reservation(loc, date, time, Customer(name, phone, address), tables, party_size, seat, occasion, notes))
-        else:   # update existing
-            reservations[index] = Reservation(loc, date, time, Customer(name, phone, address), tables, party_size, seat, occasion, notes)
-        if update_callback:  # run list update
-            update_callback()
-
-        # Create the order summary message
-        message = f'Thank you! A reservation has been placed for: {name}. \n \n\
-                The reservation will be for a party of {party_size} seated at the {seat} starting at {time}. \n'
-        if phone:
-                message += f"We will text the phone number {phone} when the table is ready. \n"
-        if address:
-                message += f"Confirmation will be sent to the email {address}. \n"
-        
-        #Create a new window to display the output message
-        output_window = tk.Toplevel(edit_window)
-        output_window.title('Reservation Summary Confirmation')
-    
-        # Display the order summary message
-        message_label = tk.Label(output_window, text=message)
-        message_label.pack()
-
-        def close_windows():
-            # closes the confirmation dialog and the edit window
-            output_window.destroy()
-            edit_window.destroy()
-
-        # Add a button to close the output window
-        close_button = tk.Button(output_window, text='Close', command=close_windows)
-        close_button.pack(pady=(0, 10))    # tuple for (top, bottom) padding
-
-        return
-
-    def on_clear():
-        # Runs when user clicks clear, form will delete input. May not be needed.
-        name_inp.delete(0, tk.END)
-        address_inp.delete(0, tk.END)
-        phone_inp.delete (0, tk.END)
-        party_size_var.set('1')
-        seat_var.set('Main area')
-        occasion_var.set('None')
-        time_var.set("3:00 PM")
-        output_line.configure(text='')
-
-
-    def on_close():
-        # Runs when user clicks Exit button and confirms
-        #if messagebox.askokcancel('Exit', 'Are you sure you want to exit?'):
-        edit_window.destroy()
-        return False
-
-
-    # begin with a blank reservation. If one sent as arg, prefill fields.
-    this_res = Reservation(loc, datetime.today(), "11:00", Customer("(new customer)"), 1, 1, seating="Main area")
-    if res:
-        this_res = res    
-
-
-    # Create the window title, size and color
-    edit_window = tk.Toplevel()
-    edit_window.title("Reservation Info")
-    #edit_window.geometry('600x515')
-    edit_window.resizable(True, True)
-    edit_window.configure(bg=window_bg_color)
-
-    r = 0  # to make it easier to rearrange items by moving the code
-
-    # Add widgets to the window
-
-    # Title
-    title = tk.Label(edit_window, text="Welcome to A Nice Restaurant!",
-                    font=('Times Roman', 24, "bold"),
-                    bg=window_bg_color, fg=fg_color)
-    title.grid(row=r, column=0, columnspan=2, sticky="ew", padx=paddingx, pady=paddingy)
-
-
-    def new_input_field(label_text, row, default_value=""):
-        # style and place a label and return the entry field
-        # if using elsewhere, will need to change edit_window to name of window you are adding to.
-        label = tk.Label(edit_window, text=label_text, bg=window_bg_color, fg=fg_color, font=label_font)
-        label.grid(row=row, column=0, sticky="w", padx=paddingx, pady=paddingy)
-
-        entry = tk.Entry(edit_window, font=input_font)
-        entry.grid(row=row, column=1, sticky="we", padx=paddingx, pady=paddingy)
-        entry.insert(0, default_value)  # Prefill
-
-        return entry
-    
-    def new_option_menu(label_text, row, options, default_value):
-        # Allows to easily add a label and option box.
-        # Returns variable for getting later.
-        parent = edit_window
-        label = tk.Label(parent, text=label_text, bg=window_bg_color, fg=fg_color, font=label_font)
-        label.grid(row=row, column=0, sticky="w", padx=paddingx, pady=paddingy)
-
-        var = tk.StringVar(parent)
-        var.set(default_value)  # Set the default selection
-
-        option_menu = tk.OptionMenu(parent, var, *options)
-        option_menu.configure(bg=select_bg_color, font=input_font, takefocus=True)
-        # allow keyboard selection with Enter. Appear at the widget x, y position.
-        option_menu.bind("<Return>", lambda event: parent.nametowidget(option_menu.menuname).tk_popup(
-        option_menu.winfo_rootx(), option_menu.winfo_rooty() + option_menu.winfo_height()))
-
-        # Configure dropdown menu items styling
-        menu = parent.nametowidget(option_menu.menuname)
-        menu.configure(font=input_font)
-
-        #add to window
-        option_menu.grid(row=row, column=1, sticky="we", padx=paddingx, pady=paddingy)
-
-        return var  # Return the variable so you can get its value later
-
-    # User inputs name information
-    def on_focus(event):
-        # if name is (new customer) auto-select it to overwrite
-        if name_inp.get() == "(new customer)":
-            name_inp.select_range(0, tk.END)    
-    r += 1
-    name_inp = new_input_field("Name *", r, this_res.cust.name)
-    name_inp.bind("<FocusIn>", on_focus)  # to check if new customer
-
-    # User inputs phone number information
-    r += 1
-    phone_inp = new_input_field("Phone Number *", r, this_res.cust.phone)
-
-    # User inputs email address information
-    r += 1
-    address_inp = new_input_field("Email Address", r, this_res.cust.email)
-
-    # Number of Tables
-    r += 1
-    tables_inp = new_input_field("Number of Tables *", r, this_res.tables)
-
-    # Party Size Selection
-    r += 1
-    party_size_var = new_option_menu("Select Party Size", r, list(range(1, 13)), "1")
-
-    # Seating Selection
-    r += 1
-    seat_var = new_option_menu("Select Seating Area", r, list(loc.seating.keys()), this_res.seating)
-
-    # Date Selection
-    r += 1
-    from tkinter import ttk
-    from tkcalendar import Calendar
-    from tkcalendar import DateEntry
-    date_label = tk.Label(edit_window, text='Select a date for reservation:')
-    date_label.configure(bg=window_bg_color, fg=fg_color, font=label_font)
-    date_label.grid(row=r, column=0, sticky='nw', padx=paddingx, pady=paddingy)
-    date_inp = DateEntry(edit_window, firstweekday="sunday", date_pattern='yyyy-mm-dd', showweeknumbers=False, weekendbackground="white", weekendforeground="black") #, startdate=date)
-    date_inp.configure(font=input_font, takefocus=True)
-    date_inp.grid(row=r, column=1, sticky='e', padx=paddingx, pady=paddingy)
-    date_inp.set_date(this_res.date)  # prefill
-
-    # Time Selection
-    r += 1
-    time_opts = []
-    for i in range(11, 22):    # Currently hard-coded. Maybe take from loc.open_time and loc.close_time
-        time_opts.append(str(i) + ":00")
-        time_opts.append(str(i) + ":30")
-    time_var = new_option_menu("Select desired arrival time:", r, time_opts, this_res.time)
-
-    # Special Occasion Selection
-    r += 1
-    occasion_var = new_option_menu("Select Special Occasion", r, occasion_list, this_res.occasion)
-
-    # Extra notes
-    r += 1
-    occasion_label = tk.Label(edit_window, text='Notes')
-    occasion_label.configure(bg=window_bg_color, fg=fg_color, font=label_font)
-    occasion_label.grid(row=r, column=0, sticky='nw', padx=paddingx, pady=paddingy)
-    notes_inp = tk.Text(edit_window, height=3, width=30)
-    notes_inp.configure(bg=select_bg_color, font=input_font)
-    notes_inp.grid(row=r, column=1, sticky='we', padx=paddingx, pady=paddingy)
-    notes_inp.insert("1.0", this_res.notes)   # prefill
-    notes_inp.bind("<Tab>", lambda event: event.widget.tk_focusNext().focus() or "break")
-    notes_inp.bind("<Shift-Tab>", lambda event: event.widget.tk_focusPrev().focus() or "break")
-
-    # add separator before action buttons
-    r += 1
-    # Separator object
-    separator = ttk.Separator(edit_window, orient='horizontal')
-    separator.grid(row=r, column=0, columnspan=2, sticky="ew", padx=paddingx, pady=paddingy*3)
-
-    # Clear button
-    clear_btn = tk.Button(edit_window, text='Cancel', command=on_close)
-    clear_btn.configure(bg=button_bg_color, font=button_font)
-    clear_btn.grid(row=99, column=0, columnspan=1, sticky='NSEW', padx=paddingx, pady=paddingy)
-
-    # Checkout button
-    submit_btn = tk.Button(edit_window, text='Save', command=on_submit)
-    submit_btn.configure(bg=button_bg_color, font=button_font)
-    submit_btn.grid(row=99, column=1, columnspan=1, sticky='NSEW', padx=paddingx, pady=paddingy)
-
-    # Exit button
-    # exit_btn = tk.Button(edit_window, text='Close', command=on_exit)
-    # exit_btn.configure(bg=button_bg_color, font=button_font)
-    # exit_btn.grid(row=100, column=0, columnspan=2, sticky='NSEW', padx=paddingx, pady=paddingy)
-
-    # Output message
-    output_line = tk.Label(edit_window, text='', anchor='w', justify='left', pady=10)
-    error_line = tk.Label(edit_window, text='', anchor='w', justify='left', pady=10)
-
-    # auto-select the first entry
-    edit_window.after(100, lambda: name_inp.focus_set())
-
-    edit_window.mainloop()
-
 def edit_cust(index=None, update_callback=None):
     # Shows fields to edit or add a customer.
     # If sent an exsiting customer index, will be prefilled with that info.
@@ -664,6 +353,390 @@ def edit_cust(index=None, update_callback=None):
     cust_window.after(100, lambda: name_inp.focus_set())
 
     cust_window.mainloop()
+
+
+def edit_res(index=None, update_callback=None):
+    # Shows fields to edit or add a reservation.
+    # If sent an exsiting reservation, will be prefilled with that info.
+    # Otherwise, will initilize to a blank reservation.
+    # Returns a reservation (new or edited), or boolean False if cancelled. (These not yet implemented)
+    if index is None or len(reservations) == 0:
+        res = None
+    else:
+        if index < 0:
+            index = 0
+        if index >= len(reservations):
+            index = len(reservations) - 1
+        res = reservations[index]
+    
+    def validate_time(time_str):
+        # Don't allow reservation if restaurant is closed.
+        try:
+            time_obj = datetime.strptime(time_str, "%H:%M")
+            if loc.open_time <= time_obj.hour < loc.close_time:
+                return True
+            else:
+                messagebox.showerror(f"Invalid Time", "Restaurant is only open from {loc.open_time} to {loc.close_time}.")
+                return False
+        except ValueError:
+            messagebox.showerror("Invalid Time Format", "Please enter time in HH:MM format (24-hour clock).")
+            return False
+
+    def tables_available(date_str, time_str, requested_tables):
+        """Check if requested tables exceed availability for the given 30-minute window."""
+        time_obj = datetime.strptime(time_str, "%H:%M")
+        start_range = time_obj.strftime("%H:%M")
+        end_range = (time_obj.replace(minute=time_obj.minute + 30)).strftime("%H:%M")
+        date_range = datetime.strptime(date_str, "yyyy-mm-dd")
+
+        # Count tables reserved in this 30-minute window
+        tables_used = 0
+        for i in range(len(reservations)):
+            if reservations[i].date == date_range:
+                if start_range <= reservations[i].time < end_range:
+                    tables_used += reservations[i].tables
+
+        if tables_used + requested_tables > loc.total_tables:
+            messagebox.showerror("No Tables Available", "Too many tables reserved in this time window.")
+            return False
+
+        return True
+
+
+    def on_submit():
+        selected_index = 0
+        try:
+            selected_index = int(cust_selection["value"].get().split(" - ")[0]) - 1
+        except:
+            selected_index = 0
+        if selected_index != 0:
+            c = customers[selected_index]
+            name = c.name
+            phone = c.phone
+            address = c.email
+            # Runs if user tries to provide without providing additional information
+            """
+            name = name_inp.get()
+            if not name:
+                messagebox.showerror('Name required', "This reservation must include a name")
+                return
+
+            phone = phone_inp.get()
+            if not phone:
+                messagebox.showerror('Phone required', "Please enter your phone number")
+                return
+            
+            address = address_inp.get()
+            #if not address:
+            #    messagebox.showerror('Error', "Please enter your email address!")
+            #    return
+            """
+
+            # convert tables to integer. Silently defaults to 1 if invalid.
+            try:
+                tables = int(tables_inp.get())
+            except:
+                tables = 1
+            if tables <= 0:
+                tables = 1
+            
+            party_size = party_size_var["value"].get()
+            seat = seat_var["value"].get()
+            date = date_inp.get_date()
+            time = time_var["value"].get()
+            occasion = occasion_var["value"].get()
+            notes = notes_inp.get("1.0", tk.END)
+
+            # line for debugging
+            # messagebox.showinfo("Vars", f"{name=}, {phone=}, {address=}, {tables=}, {party_size=}, {seat=}, {date=}, {time=}, {occasion=}, {notes=}")
+            
+            if isinstance(date, datetime):
+                date = date.isoformat()  # Convert datetime to string
+            elif not isinstance(date, str):
+                date = str(date)  # Handle unexpected cases
+
+            """
+            # check for exising customer, and create new if not found
+            def find_customer_index(customers, name, phone, address):
+                # looks for matches of name, phone, email and returns index of matching customer
+                for index, cust in enumerate(customers):
+                    if cust.name==name and cust.phone==phone and cust.email==address:
+                        return index
+                return -1
+            index = find_customer_index(customers, name, phone, address)
+            if index == -1:  # no customer, create new one
+                customers.append(Customer(name, phone, address))
+            """
+
+            if res is None:   # create new
+                reservations.append(Reservation(loc, date, time, customers[selected_index], tables, party_size, seat, occasion, notes))
+            else:   # update existing
+                reservations[index] = Reservation(loc, date, time, customers[selected_index], tables, party_size, seat, occasion, notes)
+            if update_callback:  # run list update
+                update_callback()
+
+            # Create the order summary message
+            message = f'Thank you! A reservation has been placed for: {name}. \n \n\
+                    The reservation will be for a party of {party_size} seated at the {seat} starting at {time}. \n'
+            if phone:
+                    message += f"We will text the phone number {phone} when the table is ready. \n"
+            if address:
+                    message += f"Confirmation will be sent to the email {address}. \n"
+            
+            #Create a new window to display the output message
+            output_window = tk.Toplevel(edit_window)
+            output_window.title('Reservation Summary Confirmation')
+        
+            # Display the order summary message
+            message_label = tk.Label(output_window, text=message)
+            message_label.pack()
+
+            def close_windows():
+                # closes the confirmation dialog and the edit window
+                output_window.destroy()
+                edit_window.destroy()
+
+            # Add a button to close the output window
+            close_button = tk.Button(output_window, text='Close', command=close_windows)
+            close_button.pack(pady=(0, 10))    # tuple for (top, bottom) padding
+
+            return
+
+
+    def on_close():
+        # Runs when user clicks Exit button and confirms
+        #if messagebox.askokcancel('Exit', 'Are you sure you want to exit?'):
+        edit_window.destroy()
+        return False
+
+
+    # begin with a blank reservation. If one sent as arg, prefill fields.
+    this_res = Reservation(loc, datetime.today(), "11:00", Customer("(new customer)"), 1, 1, seating="Main area")
+    if res:
+        this_res = res    
+
+
+    # Create the window title, size and color
+    edit_window = tk.Toplevel()
+    edit_window.title("Reservation Info")
+    #edit_window.geometry('600x515')
+    edit_window.resizable(True, True)
+    edit_window.configure(bg=window_bg_color)
+
+    r = 0  # to make it easier to rearrange items by moving the code
+
+    # Add widgets to the window
+
+    # Title
+    title = tk.Label(edit_window, text="Welcome to A Nice Restaurant!",
+                    font=('Times Roman', 24, "bold"),
+                    bg=window_bg_color, fg=fg_color)
+    title.grid(row=r, column=0, columnspan=2, sticky="ew", padx=paddingx, pady=paddingy)
+
+
+    def new_input_field(label_text, row, default_value=""):
+        # style and place a label and return the entry field
+        # if using elsewhere, will need to change edit_window to name of window you are adding to.
+        label = tk.Label(edit_window, text=label_text, bg=window_bg_color, fg=fg_color, font=label_font)
+        label.grid(row=row, column=0, sticky="w", padx=paddingx, pady=paddingy)
+
+        entry = tk.Entry(edit_window, font=input_font)
+        entry.grid(row=row, column=1, sticky="we", padx=paddingx, pady=paddingy)
+        entry.insert(0, default_value)  # Prefill
+
+        return entry
+    
+    def new_option_menu(label_text, row, options, default_value):
+        # Allows to easily add a label and option box.
+        # Returns variable for getting later.
+        parent = edit_window
+        label = tk.Label(parent, text=label_text, bg=window_bg_color, fg=fg_color, font=label_font)
+        label.grid(row=row, column=0, sticky="w", padx=paddingx, pady=paddingy)
+
+        var = tk.StringVar(parent)
+        var.set(default_value)  # Set the default selection
+
+        option_menu = tk.OptionMenu(parent, var, *options)
+        option_menu.configure(bg=select_bg_color, font=input_font, takefocus=True)
+        # allow keyboard selection with Enter. Appear at the widget x, y position.
+        option_menu.bind("<Return>", lambda event: parent.nametowidget(option_menu.menuname).tk_popup(
+        option_menu.winfo_rootx(), option_menu.winfo_rooty() + option_menu.winfo_height()))
+
+        # Configure dropdown menu items styling
+        menu = parent.nametowidget(option_menu.menuname)
+        menu.configure(font=input_font)
+
+        #add to window
+        option_menu.grid(row=row, column=1, sticky="we", padx=paddingx, pady=paddingy)
+        menu_ref = parent.nametowidget(option_menu.menuname)
+
+        return {"row":row, "label":label, "value":var, "menu_ref":menu_ref}  # Return the variable so you can get its value later
+
+    def cust_optionmenu():
+        cust_list = ["0 - create new customer"]
+        for i in range(len(customers)):
+            cust_list.append(str(i + 1) + " - " + customers[i].name)  # people sometimes get confused at number 0, so this will display 1 off.
+        return cust_list
+
+    def find_customer_index(customers, name, phone, address):
+        # looks for matches of name, phone, email and returns index of matching customer
+        for index, cust in enumerate(customers):
+            if cust.name==name and cust.phone==phone and cust.email==address:
+                return index
+        return -1
+
+    # User selects name information
+    r += 1
+    global cust_selection
+
+    if res is None:
+        cust_selection = new_option_menu("Select a customer", r, cust_optionmenu(), "(select a customer)")
+    else:
+        i = find_customer_index(customers, this_res.cust.name, this_res.cust.phone, this_res.cust.email)
+        cust_selection = new_option_menu("Select a customer", r, cust_optionmenu(), str(i) + " - " + this_res.cust.name)
+    
+    """
+    def on_focus(event):
+        # if name is (new customer) auto-select it to overwrite
+        if name_inp.get() == "(new customer)":
+            name_inp.select_range(0, tk.END)    
+    """
+    #r += 1
+    #name_inp = new_input_field("Name *", r, this_res.cust.name)
+    #name_inp.bind("<FocusIn>", on_focus)  # to check if new customer
+
+    # User inputs phone number information
+    r += 1
+    # phone_inp = new_input_field("Phone Number *", r, this_res.cust.phone)
+    phone_label = tk.Label(edit_window, text="Phone Number:", bg=window_bg_color, fg=fg_color, font=label_font)
+    phone_label.grid(row=r, column=0, sticky="w", padx=paddingx, pady=paddingy)
+    phone_value = tk.Label(edit_window, text=this_res.cust.phone, font=input_font)
+    phone_value.grid(row=r, column=1, sticky="w", padx=paddingx, pady=paddingy)
+
+    # User inputs email address information
+    r += 1
+    # address_inp = new_input_field("Email Address", r, this_res.cust.email)
+    email_label = tk.Label(edit_window, text="Email Address:", bg=window_bg_color, fg=fg_color, font=label_font)
+    email_label.grid(row=r, column=0, sticky="w", padx=paddingx, pady=paddingy)
+    email_value = tk.Label(edit_window, text=this_res.cust.email, font=input_font)
+    email_value.grid(row=r, column=1, sticky="w", padx=paddingx, pady=paddingy)
+    
+    def update_customer_info(optionmenu, *args):
+        global cust_selection
+        selected_index = int(cust_selection["value"].get().split(" - ")[0]) - 1
+        if selected_index == -1:   # selected the 0 - create new customer option
+            # edit_cust(None, update_callback) # create new customer here. 3 windows open at once! 
+            # Doesn't quite work yet. Was hard to get OptionMenu to dynamically update with new name.
+            
+            """
+            #After the new customer, destroy and recreate the OptionMenu
+            old_row = cust_selection["row"]  # save old row
+
+            menu = optionmenu["menu_ref"]["menu"]
+            menu.delete(0, "end")  # Removes all current entries
+            cust_list = cust_optionmenu()  # save for use later
+            for cust in cust_list:
+                menu.add_command(label=cust, command=lambda value=cust: cust_selection["value"].set(value))
+
+            # Set the newest customer as the selected option
+            cust_selection["value"].set(cust_list[-1]) 
+            """
+
+        else:
+            selected_customer = customers[selected_index]
+            
+            phone_value.config(text=selected_customer.phone if selected_customer.phone else "No phone available")
+            email_value.config(text=selected_customer.email if selected_customer.email else "No email provided")
+    
+    # Attach to dropdown selection to update fields
+    # cust_selection["value"].trace_add("write", update_customer_info)
+    cust_selection["value"].trace_add("write", lambda *args: update_customer_info(cust_selection, cust_selection["menu_ref"]))
+    
+    # Number of Tables
+    r += 1
+    tables_inp = new_input_field("Number of Tables *", r, this_res.tables)
+
+    # Party Size Selection
+    r += 1
+    party_size_var = new_option_menu("Select Party Size", r, list(range(1, 13)), "1")
+
+    # Seating Selection
+    r += 1
+    seat_var = new_option_menu("Select Seating Area", r, list(loc.seating.keys()), this_res.seating)
+
+    # Date Selection
+    r += 1
+
+    try:
+        from tkcalendar import DateEntry
+        TKCALENDAR_AVAILABLE = True
+    except ImportError:
+        TKCALENDAR_AVAILABLE = False
+
+    if TKCALENDAR_AVAILABLE:
+        date_label = tk.Label(edit_window, text='Select a date for reservation:')
+        date_label.configure(bg=window_bg_color, fg=fg_color, font=label_font)
+        date_label.grid(row=r, column=0, sticky='nw', padx=paddingx, pady=paddingy)
+        date_inp = DateEntry(edit_window, firstweekday="sunday", date_pattern='yyyy-mm-dd', showweeknumbers=False, weekendbackground="white", weekendforeground="black") #, startdate=date)
+        date_inp.configure(font=input_font, takefocus=True)
+        date_inp.grid(row=r, column=1, sticky='e', padx=paddingx, pady=paddingy)
+        date_inp.set_date(this_res.date)  # prefill
+    else:
+        new_input_field("Select a date for reservation (YYYY-MM-DD):", r, this_res.date)
+
+    # Time Selection
+    r += 1
+    time_opts = []
+    for i in range(11, 22):    # Currently hard-coded. Maybe take from loc.open_time and loc.close_time
+        time_opts.append(str(i) + ":00")
+        time_opts.append(str(i) + ":30")
+    time_var = new_option_menu("Select desired arrival time:", r, time_opts, this_res.time)
+
+    # Special Occasion Selection
+    r += 1
+    occasion_var = new_option_menu("Select Special Occasion", r, occasion_list, this_res.occasion)
+
+    # Extra notes
+    r += 1
+    occasion_label = tk.Label(edit_window, text='Notes')
+    occasion_label.configure(bg=window_bg_color, fg=fg_color, font=label_font)
+    occasion_label.grid(row=r, column=0, sticky='nw', padx=paddingx, pady=paddingy)
+    notes_inp = tk.Text(edit_window, height=3, width=30)
+    notes_inp.configure(bg=select_bg_color, font=input_font)
+    notes_inp.grid(row=r, column=1, sticky='we', padx=paddingx, pady=paddingy)
+    notes_inp.insert("1.0", this_res.notes)   # prefill
+    notes_inp.bind("<Tab>", lambda event: event.widget.tk_focusNext().focus() or "break")
+    notes_inp.bind("<Shift-Tab>", lambda event: event.widget.tk_focusPrev().focus() or "break")
+
+    # add separator before action buttons
+    r += 1
+    # Separator object
+    separator = ttk.Separator(edit_window, orient='horizontal')
+    separator.grid(row=r, column=0, columnspan=2, sticky="ew", padx=paddingx, pady=paddingy*3)
+
+    # Clear button
+    clear_btn = tk.Button(edit_window, text='Cancel', command=on_close)
+    clear_btn.configure(bg=button_bg_color, font=button_font)
+    clear_btn.grid(row=99, column=0, columnspan=1, sticky='NSEW', padx=paddingx, pady=paddingy)
+
+    # Checkout button
+    submit_btn = tk.Button(edit_window, text='Save', command=on_submit)
+    submit_btn.configure(bg=button_bg_color, font=button_font)
+    submit_btn.grid(row=99, column=1, columnspan=1, sticky='NSEW', padx=paddingx, pady=paddingy)
+
+    # Exit button
+    # exit_btn = tk.Button(edit_window, text='Close', command=on_exit)
+    # exit_btn.configure(bg=button_bg_color, font=button_font)
+    # exit_btn.grid(row=100, column=0, columnspan=2, sticky='NSEW', padx=paddingx, pady=paddingy)
+
+    # Output message
+    output_line = tk.Label(edit_window, text='', anchor='w', justify='left', pady=10)
+    error_line = tk.Label(edit_window, text='', anchor='w', justify='left', pady=10)
+
+    # auto-select the first entry
+    # edit_window.after(100, lambda: name_inp.focus_set())
+
+    edit_window.mainloop()
 
 
 global view
