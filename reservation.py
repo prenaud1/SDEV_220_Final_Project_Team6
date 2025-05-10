@@ -4,6 +4,8 @@ by Paul Renaud, LaToya Finnell, Sidart Rav, Kodi Righthouse
 Allows a restaurant employee to add, edit, or remove existing reservations.
 Keeps list of reservations, and list of customers.
 
+May 10, 2025
+
 """
 
 occasion_list = ['None', 'Birthday', 'Mothers Day', 'Fathers Day', 'Anniversary', 'Wedding', 'Graduation']
@@ -493,7 +495,7 @@ def edit_res(index=None, update_callback=None):
 
     # Party Size Selection
     r += 1
-    party_size_var = new_option_menu("Select Party Size", r, list(range(1, 13)), "1")
+    party_size_var = new_option_menu("Select Party Size", r, list(range(1, 13)), this_res.party_size)
 
     # Seating Selection
     r += 1
