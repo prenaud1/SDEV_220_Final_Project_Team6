@@ -681,7 +681,7 @@ def main_list():
         if selected:
             # confirmation dialog goes here
             message = str(reservations[selected[0]])
-            message += '/n/nAre you sure you want to delete?'
+            message += '\n\nAre you sure you want to delete?'
             messagebox.askokcancel('Delete Reservation', message) 
             del reservations[selected[0]]
             update_listbox()
@@ -715,7 +715,7 @@ def main_list():
         if selected:
             # confirmation dialog goes here
             message = str(customers[selected[0]])
-            message += '/n/nAre you sure you want to delete?'
+            message += '\n\nAre you sure you want to delete?'
             messagebox.askokcancel('Delete Customer', message)
             del customers[selected[0]]
             update_listbox()
