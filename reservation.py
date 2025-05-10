@@ -185,9 +185,9 @@ def load_reservations():
 
     def find_customer_index(customers, name, phone, email):
         # looks for matches of name, phone, email and returns index of matching customer
-        for index, cust in enumerate(customers):
+        for j, cust in enumerate(customers):
             if cust.name==name and cust.phone==phone and cust.email==email:
-                return index
+                return j
         return -1
 
     try:
@@ -196,14 +196,14 @@ def load_reservations():
         reservations = []
         for item in data:
             cust_data = item["cust"]
-            index = find_customer_index(customers, cust_data["name"], cust_data["phone"], cust_data["email"])
-            if index == -1:  # no customer, create new one
+            j = find_customer_index(customers, cust_data["name"], cust_data["phone"], cust_data["email"])
+            if j == -1:  # no customer, create new one
                 customers.append(Customer.from_dict(cust_data))
-                index = len(customers) - 1  # index of the new customer
+                j = len(customers) - 1  # index of the new customer
             reservations.append(Reservation(loc,
                                             item["date"],
                                             item["time"],
-                                            customers[index],
+                                            customers[j],
                                             item["tables"],
                                             item["party_size"],
                                             item["seating"],
@@ -219,6 +219,13 @@ def load_reservations():
 if USING_FILES:
     load_customers()
     load_reservations()
+
+def sort_res():
+    reservations.sort(key=lambda r: datetime.strptime(f"{r.date} {r.time}", "%Y-%m-%d %H:%M"))
+
+def sort_cust():
+    customers.sort(key=lambda c: c.name)
+
 
 def edit_res(index=None, update_callback=None):
     # Shows fields to edit or add a reservation.
@@ -312,12 +319,12 @@ def edit_res(index=None, update_callback=None):
         # check for exising customer, and create new if not found
         def find_customer_index(customers, name, phone, address):
             # looks for matches of name, phone, email and returns index of matching customer
-            for index, cust in enumerate(customers):
+            for j, cust in enumerate(customers):
                 if cust.name==name and cust.phone==phone and cust.email==address:
-                    return index
+                    return j
             return -1
-        index = find_customer_index(customers, name, phone, address)
-        if index == -1:  # no customer, create new one
+        j = find_customer_index(customers, name, phone, address)
+        if j == -1:  # no customer, create new one
             customers.append(Customer(name, phone, address))
 
 
@@ -696,9 +703,9 @@ def main_list():
     
     def edit_selected_res():
         # Gets current selection and sends index to edit_res function.
-        selected = listbox.curselection()
-        if selected:   # check if not blank
-            edit_res(selected[0], update_listbox)  # sel is a tuple, but I only want the first entry
+        sel = listbox.curselection()
+        if sel:   # check if not blank
+            edit_res(sel[0], update_listbox)  # sel is a tuple, but I only want the first entry
 
     def add_cust():
         edit_cust(None, update_listbox)  # sent with no args for new customer
@@ -726,6 +733,7 @@ def main_list():
         if view=="reservations":
             title_label.config(text="Reservations")
             listbox.configure(bg="#bbbbff")
+            sort_res()
             for i in range(len(reservations)):
                 s = "s" if reservations[i].tables != 1 else ""  # Do not include "s" for 1 table.
                 listbox.insert(tk.END, f"   {reservations[i].date} - {reservations[i].time} - {reservations[i].cust.name} - {reservations[i].tables} table{s} in {reservations[i].seating}")
@@ -737,6 +745,7 @@ def main_list():
         else:
             title_label.config(text="Customers")
             listbox.configure(bg="#bbffbb")
+            sort_cust()
             for i in range(len(customers)):
                 listbox.insert(tk.END, f"   {customers[i].name} - {customers[i].phone} - {customers[i].email}")
             # Re-define buttons
